@@ -1,0 +1,12 @@
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    margin: 2rem;
+}
+.form-control {
+    border-radius: 0.5rem;
+}
+.form-label {
+    font-weight: 500;
+}

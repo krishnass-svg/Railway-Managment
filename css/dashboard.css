@@ -1,0 +1,54 @@
+/* Body background with gradient overlay only (no image) */
+body {
+    background: 
+      linear-gradient(rgba(70, 130, 180, 0.8), rgba(70, 130, 180, 0.8)); /* new gradient colors */
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva , Verdana, sans-serif;
+}
+
+/* Container margin */
+.dashboard-container {
+    margin-top: 60px;
+}
+
+/* Card style */
+.card {
+    border: none;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+/* Card hover effect */
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* Card titles bold */
+.card-title {
+    font-weight: bold;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-weight: 600;
+}
+
+/* Dashboard page title */
+.dashboard-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
+
+/* Responsive font size */
+@media (max-width: 768px) {
+    .dashboard-title {
+        font-size: 1.8rem;
+    }
+}

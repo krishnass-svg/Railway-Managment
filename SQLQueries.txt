@@ -1,0 +1,183 @@
+CREATE DATABASE railwaymanagment;
+--DROP TABLE IF EXISTS users_roles;
+--DROP TABLE IF EXISTS roles;
+--DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  phone_number VARCHAR(20) NOT NULL,
+  email VARCHAR(256) NOT NULL,
+  password VARCHAR(64) NOT NULL,
+  first_name VARCHAR(25) NOT NULL,
+  last_name VARCHAR(25) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_users PRIMARY KEY (id),
+  CONSTRAINT uq_users_email UNIQUE (email),
+  CONSTRAINT uq_users_phone_number UNIQUE (phone_number)
+);
+
+
+CREATE TABLE roles (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(45) NOT NULL,
+  CONSTRAINT pk_roles PRIMARY KEY (id),
+  CONSTRAINT uq_roles_name UNIQUE (name)
+);
+
+
+CREATE TABLE users_roles (
+  user_id BIGINT UNSIGNED NOT NULL,
+  role_id BIGINT UNSIGNED NOT NULL,
+  CONSTRAINT pk_users_roles PRIMARY KEY (user_id, role_id),
+  CONSTRAINT fk_users_roles_user FOREIGN KEY (user_id) REFERENCES users(id),
+  CONSTRAINT fk_users_roles_role FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+
+INSERT INTO roles (name) VALUES ('USER');
+INSERT INTO roles (name) VALUES ('ADMIN');
+
+CREATE TABLE orrs_train (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    number VARCHAR(10) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    route VARCHAR(255) NOT NULL,
+    current VARCHAR(255) NOT NULL,
+    destination VARCHAR(255) NOT NULL,
+    time TIME NOT NULL,
+    fare DECIMAL(10, 2) NOT NULL
+);
+
+INSERT INTO orrs_train (number, name, route, current, destination, time, fare)
+VALUES
+('12345', 'Rajdhani Express', 'Delhi to Mumbai', 'New Delhi', 'Mumbai Central', '10:00:00', 1500.00),
+('67890', 'Shatabdi Express', 'Delhi to Amritsar', 'New Delhi', 'Amritsar', '15:30:00', 1200.00),
+('11223', 'Hampi Express', 'Mysuru to Hubballi', 'Mysuru', 'Hubballi', '06:15:00', 800.00),
+('33445', 'Duronto Express', 'Hyderabad to Pune', 'Hyderabad', 'Pune', '07:45:00', 950.00),
+('55667', 'Garib Rath', 'Chennai to Bengaluru', 'Chennai Central', 'Bengaluru', '09:30:00', 600.00),
+('77889', 'Intercity Express', 'Lucknow to Kanpur', 'Lucknow', 'Kanpur', '12:00:00', 300.00),
+('99001', 'Karnataka Sampark Kranti', 'Bengaluru to Delhi', 'Bengaluru', 'New Delhi', '05:45:00', 1800.00),
+('22334', 'Goa Express', 'Vasco to Pune', 'Vasco Da Gama', 'Pune', '16:10:00', 700.00),
+('44556', 'Mangalore Express', 'Mangalore to Chennai', 'Mangalore', 'Chennai Central', '18:25:00', 1300.00),
+('66778', 'Howrah Mail', 'Kolkata to Chennai', 'Howrah', 'Chennai Central', '19:50:00', 1600.00);
+
+ 
+
+CREATE TABLE orrs_bookings (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    train_id INT(11) NOT NULL,
+    passenger_name VARCHAR(100) NOT NULL,
+    passenger_email VARCHAR(100) NOT NULL,
+    seats INT(11) NOT NULL,
+    total_fare DECIMAL(10,2) NOT NULL,
+    booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (train_id) REFERENCES orrs_train(id) ON DELETE CASCADE
+);
+
+-- Schedule table for per-day timing
+CREATE TABLE IF NOT EXISTS orrs_train_schedule (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    train_id INT NOT NULL,
+    day VARCHAR(20) NOT NULL,
+    arrival_time TIME NOT NULL,
+    departure_time TIME NOT NULL,
+    FOREIGN KEY (train_id) REFERENCES orrs_train(id) ON DELETE CASCADE
+);
+
+INSERT INTO orrs_train_schedule (train_id, day, arrival_time, departure_time) VALUES
+(1, 'Monday', '09:55:00', '10:00:00'),
+(2, 'Monday', '15:25:00', '15:30:00'),
+(2, 'Wednesday', '15:25:00', '15:30:00'),
+(3, 'Tuesday', '06:10:00', '06:15:00'),
+(4, 'Thursday', '07:40:00', '07:45:00'),
+(5, 'Friday', '09:25:00', '09:30:00'),
+(6, 'Saturday', '11:55:00', '12:00:00'),
+(7, 'Sunday', '05:40:00', '05:45:00'),
+(8, 'Monday', '16:05:00', '16:10:00'),
+(9, 'Wednesday', '18:20:00', '18:25:00'),
+(10, 'Friday', '19:45:00', '19:50:00');
+
+
+-- Calculates the total revenue from all train bookings by summing the total_fare column in the orrs_bookings table
+SELECT SUM(total_fare) AS total_revenue FROM orrs_bookings;
+
+CREATE TABLE payments (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT(11) NOT NULL,
+    razorpay_payment_id VARCHAR(255) NOT NULL,
+    razorpay_order_id VARCHAR(255) NOT NULL,
+    razorpay_signature VARCHAR(255) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'INR',
+    status ENUM('created', 'authorized', 'captured', 'failed') DEFAULT 'created',
+    method VARCHAR(50),
+    email VARCHAR(255),
+    contact VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES orrs_bookings(id) ON DELETE CASCADE
+);
+
+ALTER TABLE orrs_bookings 
+ADD COLUMN payment_status VARCHAR(20) DEFAULT 'UNPAID',
+ADD COLUMN razorpay_payment_id VARCHAR(100);
+
+CREATE TABLE feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(15) NOT NULL,
+    message TEXT NOT NULL,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE orrs_bookings ADD seat_numbers VARCHAR(100);
+
+ALTER TABLE orrs_train ADD seats_available INT NOT NULL DEFAULT 100;
+
+CREATE TABLE orrs_seats (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     train_id INT,
+     coach CHAR(1), -- A, B, C
+     seat_number VARCHAR(5), -- A1, B5
+     booking_id INT,
+     booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE orrs_seats ADD travel_date DATE;
+
+ALTER TABLE orrs_bookings ADD journey_date DATE AFTER total_fare;
+
+ALTER TABLE orrs_seats ADD journey_date DATE AFTER booking_id;
+
+ALTER TABLE orrs_seats ADD journey_date DATE;
+
+ALTER TABLE orrs_bookings ADD travel_date DATE;
+
+CREATE TABLE orrs_cancellations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    train_id INT NOT NULL,
+    cancelled_date DATE NOT NULL,
+    reason VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+update users_roles set role_id=2 where user_id=1;
+
+ALTER TABLE orrs_bookings ADD COLUMN passenger_age INT;
+
+CREATE TABLE orrs_passengers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT NOT NULL,
+  name VARCHAR(100),
+  age INT,
+  email VARCHAR(100),
+  fare DECIMAL(10,2),
+  FOREIGN KEY (booking_id) REFERENCES orrs_bookings(id) ON DELETE CASCADE
+);
+
+ALTER TABLE orrs_passengers ADD COLUMN phone VARCHAR(20);
+
+ALTER TABLE orrs_bookings ADD COLUMN coach VARCHAR(5) AFTER travel_date;
+
+op ALTER TABLE orrs_bookings ADD COLUMN booking_time DATETIME DEFAULT CURRENT_TIMESTAMP;
+

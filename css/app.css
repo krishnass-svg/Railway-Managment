@@ -1,0 +1,14 @@
+html, body {
+  height: 100%;  /* Ensure the page takes up full height */
+  margin: 0;     /* Remove default margin */
+  display: flex;
+  flex-direction: column;  /* Stack the content vertically */
+}
+
+body {
+  flex: 1;  /* Allow body to grow and fill space between header and footer */
+}
+
+footer {
+  margin-top: auto; /* Push the footer to the bottom when there's extra space */
+}
